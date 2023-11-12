@@ -9,13 +9,13 @@ const std::string DEFAULT_STRING = "?"; // TODO: constinit ????
 constinit char DEFAULT_BACKGROUND = '.';
 
 constinit pos_t START_POS = std::pair(0, 0);
-const RectArea EMPTY_AREA = RectArea(START_POS, START_POS); // TODO: constinit ????
+const RectArea EMPTY_AREA = RectArea{{1,1}, {0,0}}; // TODO: constinit ????
 constinit int ENLARGE = 'A' - 'a';
 
 
 // __________Word CLASS IMPLEMENTATION__________
 
-Word::Word(size_t x, size_t y, orient_t o, const std::string& s) {
+Word::Word(size_t x, size_t y, orientation_t o, const std::string& s) {
     orientation = o;
     position = pos_t(std::pair(x, y));
     if (s.empty()) {
@@ -44,8 +44,12 @@ pos_t Word::getPosBegin() const {
 
 pos_t Word::getPosEnd() const {
     pos_t end = position;
-    if (orientation == orientation_t::H) end.second += str.size() - 1;
-    else end.first += str.size() - 1;
+    if (orientation == orientation_t::H) {
+        end.first += str.size() - 1;
+    }
+    else {
+        end.second += str.size() - 1;
+    }
     return end;
 }
 
@@ -65,7 +69,7 @@ size_t Word::getSize() const {
 }
 
 RectArea Word::getRectArea() const {
-    return {getPosBegin(), getPosEnd()};
+    return RectArea{getPosBegin(), getPosEnd()};
 }
 //
 ////TODO: przypisanie
@@ -119,14 +123,22 @@ std::strong_ordering Word::operator<=>(const Word& word) const {
 
 // __________RectArea CLASS IMPLEMENTATION__________
 
-RectArea::RectArea(const pos_t& lt, const pos_t& rb): leftTop(lt),
-                                                        rightBottom(rb){}
+RectArea::RectArea(const pos_t& lt, const pos_t& rb)
+:
+leftTop(lt),
+rightBottom(rb)
+{}
 
-RectArea::RectArea(const RectArea& rectArea): leftTop(rectArea.leftTop),
+
+RectArea::RectArea(const RectArea& rectArea)
+:
+leftTop(rectArea.leftTop),
 rightBottom(rectArea.rightBottom)
 {}
 
-RectArea::RectArea(RectArea&& rectArea): leftTop(std::move(rectArea.leftTop)),
+RectArea::RectArea(RectArea&& rectArea)
+:
+leftTop(std::move(rectArea.leftTop)),
 rightBottom(std::move(rectArea.rightBottom))
 {}
 
@@ -135,6 +147,7 @@ RectArea& RectArea::operator=(const RectArea& rectArea){
     rightBottom = rectArea.rightBottom;
     return *this;
 }
+
 RectArea& RectArea::operator=(RectArea&& rectArea){
     leftTop = std::move(rectArea.leftTop);
     rightBottom = std::move(rectArea.rightBottom);
@@ -192,8 +205,8 @@ void RectArea::setRightBottom(const pos_t& newPos) {
 }
 
 dim_t RectArea::getDim() const {
-    return dim_t{std::max((size_t) 0, rightBottom.first - leftTop.first + 1),
-                 std::max((size_t) 0, rightBottom.second - leftTop.second + 1)};
+    return dim_t{std::max((size_t) 0, rightBottom.first - leftTop.first),
+                 std::max((size_t) 0, rightBottom.second - leftTop.second)};
 }
 
 bool RectArea::isEmpty() {
@@ -221,9 +234,9 @@ Crossword::Crossword(Word w, std::initializer_list<Word> wordList) :
 
 // TODO: konstruktory
 
-pos_t Crossword::nextPos(pos_t pos, orient_t orientation) {
+pos_t Crossword::nextPos(pos_t pos, orientation_t orientation) {
     pos_t res = pos;
-    if(orientation == orient_t::H) res.first++;
+    if(orientation == orientation_t::H) res.first++;
     else res.second++;
     return res;
 }
@@ -231,7 +244,7 @@ pos_t Crossword::nextPos(pos_t pos, orient_t orientation) {
 bool Crossword::collision(Word word) {
     pos_t pos = word.getPosBegin();
     size_t idx = 0;
-    orient_t orientation = word.getOrientation();
+    orientation_t orientation = word.getOrientation();
     while(pos <= word.getPosEnd()){
         auto letter = fullArea[pos];
         if(fullArea.contains(pos) && fullArea[pos] != word.getLetter(idx))
@@ -244,7 +257,7 @@ bool Crossword::collision(Word word) {
 
 void Crossword::insert(Word word) {
     if(!collision(word)){
-        if (word.getOrientation() == orient_t::H) countH++;
+        if (word.getOrientation() == orientation_t::H) countH++;
         else countV++;
 
         words.insert(&word);
@@ -254,7 +267,7 @@ void Crossword::insert(Word word) {
 
         pos_t pos = word.getPosBegin();
         size_t idx = 0;
-        orient_t orientation = word.getOrientation();
+        orientation_t orientation = word.getOrientation();
         while(pos <= word.getPosEnd()){
             fullArea.insert(std::pair(pos, word.getLetter(idx)));
             pos = nextPos(pos, orientation);
@@ -279,15 +292,15 @@ void Crossword::print(char background) {
             if(fullArea.contains(pos)) {
                 char c = fullArea[pos];
                 if (c >= 'a' && c <= 'z') c += ENLARGE;
-                else if (c < 'A' && c > 'Z') c = DEFAULT_NON_LETTER;
+                else if (c < 'A' || c > 'Z') c = DEFAULT_NON_LETTER;
                 std::cout << c << " ";
             }
             else {
                 std::cout << background << " ";
             }
-            pos = nextPos(pos, orient_t::V);
+            pos = nextPos(pos, orientation_t::V);
         }
-        pos = nextPos(pos, orient_t::H);
+        pos = nextPos(pos, orientation_t::H);
     }
 }
 
