@@ -240,7 +240,7 @@ Crossword::Crossword(const Word& w, std::initializer_list<Word> wordList) :
     rectArea(w.getRectArea()){
     insert(w);
     for (auto i = wordList.begin(); i < wordList.end(); i++) {
-            insert(*i); // ???
+            insert(*i);
     }
 }
 
@@ -271,10 +271,14 @@ fullArea(std::move(crossword.fullArea))
     }
 }
 
-pos_t Crossword::nextPos(pos_t pos, orientation_t orientation) {
+pos_t Crossword::nextPos(const pos_t& pos, orientation_t orientation) {
     pos_t res = pos;
-    if(orientation == orientation_t::H) res.first++;
-    else res.second++;
+    if(orientation == orientation_t::H)  {
+        ++res.first;
+    }
+    else {
+        ++res.second;
+    }
     return res;
 }
 
@@ -292,7 +296,7 @@ bool Crossword::collision(const Word& word) {
     return true;
 }
 
-void Crossword::insert( const Word& word) {
+void Crossword::insert(const Word& word) {
     if(!collision(word)){
         if (word.getOrientation() == orientation_t::H) ++countH;
         else ++countV;
@@ -318,7 +322,7 @@ dim_t Crossword::getDim() {
 }
 
 count_t Crossword::getCount() {
-    return count_t(countH, countV);
+    return {countH, countV};
 }
 
 void Crossword::print(char background) {

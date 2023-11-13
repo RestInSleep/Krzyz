@@ -74,7 +74,7 @@ private:
     RectArea rectArea;
     std::map<pos_t, char> fullArea;
 
-    pos_t nextPos(pos_t pos, orientation_t orientation);
+    static pos_t nextPos(const pos_t& pos, orientation_t orientation);
     bool collision(const Word& word);
 
 public:
