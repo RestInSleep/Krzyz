@@ -142,13 +142,13 @@ leftTop(std::move(rectArea.leftTop)),
 rightBottom(std::move(rectArea.rightBottom))
 {}
 
-RectArea& RectArea::operator=(const RectArea& rectArea){
+RectArea& RectArea::operator=(const RectArea& rectArea) {
     leftTop = rectArea.leftTop;
     rightBottom = rectArea.rightBottom;
     return *this;
 }
 
-RectArea& RectArea::operator=(RectArea&& rectArea){
+RectArea& RectArea::operator=(RectArea&& rectArea) {
     leftTop = std::move(rectArea.leftTop);
     rightBottom = std::move(rectArea.rightBottom);
     return *this;
@@ -205,12 +205,22 @@ void RectArea::setRightBottom(const pos_t& newPos) {
 }
 
 dim_t RectArea::getDim() const {
-    return dim_t{std::max((size_t) 0, rightBottom.first - leftTop.first),
-                 std::max((size_t) 0, rightBottom.second - leftTop.second)};
+    if (rightBottom.first < leftTop.first) {
+        return {0,0};
+    }
+    if (rightBottom.second < leftTop.first) {
+        return {0,0};
+    }
+    return {rightBottom.first - leftTop.first  + 1, rightBottom.second -
+    leftTop.second + 1};
+
+    //    return dim_t{
+//        std::max((size_t) 0, rightBottom.first - leftTop.first),
+//                 std::max((size_t) 0, rightBottom.second - leftTop.second)};
 }
 
-bool RectArea::isEmpty() {
-    return getDim() == dim_t(0, 0);
+bool RectArea::isEmpty() const {
+    return getDim() == dim_t{0, 0};
 }
 
 void RectArea::resize(pos_t pos) {
@@ -226,13 +236,40 @@ void RectArea::resize(pos_t pos) {
 
 
 
-Crossword::Crossword(Word w, std::initializer_list<Word> wordList) :
-        rectArea(RectArea(START_POS, START_POS)){
+Crossword::Crossword(const Word& w, std::initializer_list<Word> wordList) :
+    rectArea(w.getRectArea()){
     insert(w);
-    for (auto i = wordList.begin(); i < wordList.end(); i++) insert((Word&) i); // ???
+    for (auto i = wordList.begin(); i < wordList.end(); i++) {
+            insert(*i); // ???
+    }
 }
 
 // TODO: konstruktory
+Crossword::Crossword(const Crossword& crossword)
+:
+countH(crossword.countH),
+countV(crossword.countV),
+words(crossword.words),
+rectArea(crossword.rectArea),
+fullArea(crossword.fullArea)
+{
+    if (crossword.countH + crossword.countV == 0) {
+        rectArea = EMPTY_AREA;
+    }
+}
+
+Crossword::Crossword(Crossword&& crossword)
+:
+countH(crossword.countH),
+countV(crossword.countV),
+words(std::move(crossword.words)),
+rectArea(std::move(crossword.rectArea)),
+fullArea(std::move(crossword.fullArea))
+{
+    if (crossword.countH + crossword.countV == 0) {
+        rectArea = EMPTY_AREA;
+    }
+}
 
 pos_t Crossword::nextPos(pos_t pos, orientation_t orientation) {
     pos_t res = pos;
@@ -241,7 +278,7 @@ pos_t Crossword::nextPos(pos_t pos, orientation_t orientation) {
     return res;
 }
 
-bool Crossword::collision(Word word) {
+bool Crossword::collision(const Word& word) {
     pos_t pos = word.getPosBegin();
     size_t idx = 0;
     orientation_t orientation = word.getOrientation();
@@ -255,12 +292,12 @@ bool Crossword::collision(Word word) {
     return true;
 }
 
-void Crossword::insert(Word word) {
+void Crossword::insert( const Word& word) {
     if(!collision(word)){
-        if (word.getOrientation() == orientation_t::H) countH++;
-        else countV++;
+        if (word.getOrientation() == orientation_t::H) ++countH;
+        else ++countV;
 
-        words.insert(&word);
+        words.insert(word);
 
         rectArea.resize(word.getPosBegin());
         rectArea.resize(word.getPosEnd());

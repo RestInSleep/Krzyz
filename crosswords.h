@@ -29,7 +29,7 @@ public:
     void setRightBottom(const pos_t& newPos);
 
     dim_t getDim() const;
-    bool isEmpty();
+    bool isEmpty() const;
     void resize(pos_t pos);
     friend RectArea operator*(const RectArea& rectArea1, const RectArea& rectArea2);
     friend RectArea& operator*=(RectArea& rectArea1, const RectArea& rectArea2);
@@ -68,24 +68,24 @@ public:
 
 class Crossword {
 private:
-    std::set<Word*> words;
+    std::set<Word> words;
     size_t countV = 0;
     size_t countH = 0;
     RectArea rectArea;
     std::map<pos_t, char> fullArea;
 
     pos_t nextPos(pos_t pos, orientation_t orientation);
-    bool collision(Word word);
+    bool collision(const Word& word);
 
 public:
-    Crossword(Word w, std::initializer_list<Word> wordList);
-    Crossword(Crossword& crossword);
+    Crossword(const Word& w, std::initializer_list<Word> wordList);
+    Crossword(const Crossword& crossword);
     Crossword(Crossword&& crossword);
 
     Crossword& operator=(const Crossword&);
     Crossword& operator=(Crossword&&);
 
-    void insert(Word word);
+    void insert(const Word& word);
     dim_t getDim();
     count_t getCount();
 
