@@ -74,18 +74,10 @@ char Word::at(unsigned int ind) const {
 RectArea Word::getRectAreaWithFrame() const {
     RectArea tmp = getRectArea();
     pos_t tmpBeg, tmpEnd;
-    if (getOrientation() == H) {
-        tmpBeg = std::pair(getPosBegin().first,
+
+        tmpBeg = std::pair(getPosBegin().first == 0 ? 0 : getPosBegin().first - 1 ,
                            (getPosBegin().second == 0 ? 0 : getPosBegin().second - 1));
-        tmpEnd = std::pair(getPosEnd().first,
-                           getPosEnd().second + 1);
-    }
-    else {
-        tmpBeg = std::pair((getPosBegin().first == 0 ? 0 : getPosBegin().first - 1),
-                           getPosBegin().second);
-        tmpEnd = std::pair(getPosEnd().first + 1,
-                           getPosEnd().second);
-    }
+        tmpEnd = std::pair( getPosEnd().first + 1,getPosEnd().second + 1);
     tmp.resize(tmpBeg);
     tmp.resize(tmpEnd);
     return tmp;
@@ -355,42 +347,42 @@ bool Crossword::emptyBeforeAfter(const Word& word) {
     return true;
 }
 
-bool Crossword::collision(const Word& word) {
-    //kratka przed i po:
-    if(!emptyBeforeAfter(word)) return true;
 
-    //RectArea z ramką
+bool Crossword::collision(const Word& word) {
     RectArea frame = word.getRectAreaWithFrame();
 
     for (const Word& w : words) {
-        dim_t dim = (w.getRectArea() * frame).getDim(); // wymiary czesci wspolnej
-        size_t area = dim.first * dim.second; // pole powierzchni czesci wspolnej (liczba kratek)
-        if(w.getOrientation() == word.getOrientation()) {
-            if(area != 0) return true;
-        }
-        else {
-            if(area != 0 && area != 2 && area != 3 && w.getSize() != 0) return true;
-            else {
-                if (area > 0) {
-                    pos_t pos = (w.getRectArea() * word.getRectArea()).getLeftTop();
-                    size_t idx = std::max(pos.first - word.getPosBegin().first,
-                                          pos.second - word.getPosBegin().second);
+       RectArea product = w.getRectArea() * frame;
+       if (!product.isEmpty()) {
+           if (word.getOrientation() == w.getOrientation()) {
+               if (!product.isEmpty()) {
+                   return true;
+               }
+           }
+           else {
+               RectArea wordProduct = w.getRectArea() * word.getRectArea();
+               if (wordProduct.isEmpty()) {
+                   return true;
+               }
+               pos_t pos = wordProduct.getLeftTop();
+               size_t idx = std::max(pos.first - word.getPosBegin().first, pos.second - word.getPosBegin().second);
+               char toCheck = word.getLetter(idx);
+               if (toCheck >= 'a' && toCheck <= 'z') {
+                   toCheck += ENLARGE;
+               } else if (toCheck > 'Z' || toCheck < 'A') {
+                   toCheck = DEFAULT_NON_LETTER;
+               }
+               if (fullArea.contains(pos) && fullArea[pos] != toCheck)
+                   return true;
+           }
 
-                    char toCheck = word.getLetter(idx);
-                    if (toCheck >= 'a' && toCheck <= 'z') {
-                        toCheck += ENLARGE;
-                    }
-                    else if(toCheck > 'Z' || toCheck < 'A') {
-                        toCheck = DEFAULT_NON_LETTER;
-                    }
-                    if (fullArea.contains(pos) && fullArea[pos] != toCheck)
-                        return true;
-                }
-            }
-        }
+       }
     }
     return false;
 }
+
+
+
 
 bool Crossword::insert(const Word& word) {
     if (collision(word))
@@ -449,8 +441,5 @@ void Crossword::print(char background) {
         }
         std::cout << '\n';
     }
-
-
-
-
+    std::cout <<'\n';
 }
