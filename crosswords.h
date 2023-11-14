@@ -1,6 +1,14 @@
+#ifndef CROSSWORDS
+#define CROSSWORDS
+
 #include <iostream>
 #include <set>
 #include <map>
+
+static constinit char DEFAULT_NON_LETTER = '?';
+static const std::string DEFAULT_STRING = "?"; // TODO: constinit ????
+static constinit char DEFAULT_BACKGROUND = '.';
+
 
 
 using pos_t = std::pair<size_t, size_t>;
@@ -48,6 +56,8 @@ public:
     Word(const Word &word);
     Word(Word &&word);
 
+    char at(unsigned int ind) const;
+
     pos_t getPosBegin() const;
     pos_t getPosEnd() const;
     orientation_t getOrientation () const;
@@ -55,6 +65,7 @@ public:
     size_t getSize() const;
     RectArea getRectArea() const;
     std::string getStr() const;
+    RectArea getRectAreaWithFrame() const;
     //TODO: operatory, operacje przypisania
 
 
@@ -74,6 +85,7 @@ private:
     RectArea rectArea;
     std::map<pos_t, char> fullArea;
 
+    bool emptyBeforeAfter(const Word& word);
     static pos_t nextPos(const pos_t& pos, orientation_t orientation);
     bool collision(const Word& word);
 
@@ -81,14 +93,23 @@ public:
     Crossword(const Word& w, std::initializer_list<Word> wordList);
     Crossword(const Crossword& crossword);
     Crossword(Crossword&& crossword);
-
+    Crossword& operator+=(const Crossword& cr);
     Crossword& operator=(const Crossword&);
     Crossword& operator=(Crossword&&);
 
-    void insert(const Word& word);
+    Crossword operator+(const Crossword&);
+
+
+    bool insert(const Word& word);
     dim_t getDim();
     count_t getCount();
 
-    void print(char background);
+    void print(char background = DEFAULT_BACKGROUND);
     //TODO: operatory, operacje przypisania
 };
+
+static constinit pos_t START_POS = std::pair(0, 0);
+static const RectArea EMPTY_AREA = RectArea{{1,1}, {0,0}}; // TODO: constinit ????
+static constinit int ENLARGE = 'A' - 'a';
+
+#endif
