@@ -372,8 +372,6 @@ bool Crossword::collision(const Word& word) {
             if(area != 0 && area != 2 && area != 3 && w.getSize() != 0) return true;
             else {
                 if (area > 0) {
-
-
                     pos_t pos = (w.getRectArea() * word.getRectArea()).getLeftTop();
                     size_t idx = std::max(pos.first - word.getPosBegin().first,
                                           pos.second - word.getPosBegin().second);
@@ -381,6 +379,9 @@ bool Crossword::collision(const Word& word) {
                     char toCheck = word.getLetter(idx);
                     if (toCheck >= 'a' && toCheck <= 'z') {
                         toCheck += ENLARGE;
+                    }
+                    else if(toCheck > 'Z' || toCheck < 'A') {
+                        toCheck = DEFAULT_NON_LETTER;
                     }
                     if (fullArea.contains(pos) && fullArea[pos] != toCheck)
                         return true;
@@ -411,6 +412,9 @@ bool Crossword::insert(const Word& word) {
             char toAdd = word.getLetter(idx);
             if (toAdd >= 'a' && toAdd <= 'z') {
                 toAdd += ENLARGE;
+            }
+            else if (toAdd < 'A' || toAdd > 'Z') {
+                toAdd = DEFAULT_NON_LETTER;
             }
             fullArea.insert({pos, toAdd});
             pos = nextPos(pos, orientation);
