@@ -5,15 +5,13 @@
 #include <set>
 #include <map>
 
-
 extern constinit char DEFAULT_CHAR;
 extern constinit std::string_view DEFAULT_WORD;
 extern constinit char CROSSWORD_BACKGROUND;
 
-
 using pos_t = std::pair<size_t, size_t>;
 using dim_t = std::pair<size_t, size_t>;
-using count_t = std::pair<size_t, size_t>; // size_t ???
+using count_t = std::pair<size_t, size_t>;
 enum orientation_t : bool {H, V};
 
 class RectArea {
@@ -23,15 +21,20 @@ private:
 
 public:
     RectArea(const pos_t& lt, const pos_t& rb);
-    RectArea(const pos_t& rb) = delete;
-    RectArea() = delete;
     RectArea(const RectArea &rect_area);
     RectArea(RectArea &&rect_area);
+    RectArea(const pos_t& rb) = delete;
+    RectArea() = delete;
     constexpr RectArea(size_t lt_x, size_t lt_y, size_t rb_x, size_t rb_y):
-            left_top(lt_x, lt_y), right_bottom(rb_x, rb_y)
-    {}
+            left_top(lt_x, lt_y), right_bottom(rb_x, rb_y) {
+    }
+
     RectArea& operator=(const RectArea& rect_area);
     RectArea& operator=(RectArea&& rect_area);
+    friend RectArea operator*(const RectArea& rect_area1,
+                              const RectArea& rect_area2);
+    friend RectArea& operator*=(RectArea& rect_area1,
+                                const RectArea& rect_area2);
 
     pos_t get_left_top() const;
     void set_left_top(const pos_t& new_pos);
@@ -41,8 +44,6 @@ public:
     dim_t size() const;
     bool empty() const;
     void embrace(pos_t pos);
-    friend RectArea operator*(const RectArea& rect_area1, const RectArea& rect_area2);
-    friend RectArea& operator*=(RectArea& rect_area1, const RectArea& rect_area2);
 };
 
 class Word {
@@ -56,20 +57,21 @@ public:
     Word(const Word &word);
     Word(Word &&word);
 
-    std::strong_ordering operator<=>(const Word& word) const;
     Word& operator=(const Word& word);
     Word& operator=(Word&& word);
     bool operator==(const Word& word) const;
     bool operator!=(const Word& word) const;
+    std::strong_ordering operator<=>(const Word& word) const;
 
-    char at(unsigned int ind) const;
     pos_t get_start_position() const;
     pos_t get_end_position() const;
     orientation_t get_orientation () const;
-    char getLetter(size_t idx) const;
-    size_t length() const;
-    RectArea rect_area() const;
+
     std::string get_str() const;
+    size_t length() const;
+    char at(size_t ind) const;
+
+    RectArea rect_area() const;
     RectArea get_rect_area_with_frame() const;
 };
 
@@ -81,8 +83,8 @@ private:
     RectArea rect_area;
     std::map<pos_t, char> fullArea;
 
-    bool emptyBeforeAfter(const Word& word);
     static pos_t nextPos(const pos_t& pos, orientation_t orientation);
+    static void correctLetter(char& c);
     bool collision(const Word& word);
 
 public:
@@ -90,18 +92,19 @@ public:
     Crossword(const Crossword& crossword);
     Crossword(Crossword&& crossword);
 
-    Crossword& operator+=(const Crossword& cr);
     Crossword& operator=(const Crossword&);
     Crossword& operator=(Crossword&&);
     Crossword operator+(const Crossword&);
+    Crossword& operator+=(const Crossword& cr);
 
     bool insert_word(const Word& word);
     dim_t size() const;
     count_t word_count() const;
-    friend std::ostream& operator <<(std::ostream& out, const Crossword& cross);
-};
-constexpr RectArea DEFAULT_EMPTY_RECT_AREA = RectArea(1,1,0,0);
 
+    friend std::ostream& operator<<(std::ostream& out, const Crossword& cross);
+};
+
+constexpr RectArea DEFAULT_EMPTY_RECT_AREA = RectArea(1,1,0,0);
 
 
 #endif
