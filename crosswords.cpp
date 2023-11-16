@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include "crosswords.h"
 
 // __________GLOBAL VARIABLES__________
@@ -107,6 +108,9 @@ dim_t RectArea::size() const {
 
     if (right_bottom.second < left_top.second)
         return {0,0};
+
+   assert(right_bottom.first - left_top.first <= SIZE_MAX);
+   assert(right_bottom.second - left_top.second <= SIZE_MAX);
 
     return {right_bottom.first - left_top.first + 1,
             right_bottom.second - left_top.second + 1};
@@ -264,7 +268,6 @@ RectArea Word::get_rect_area_with_frame() const {
     frameEnd = std::pair( endPos.first + 1,endPos.second + 1);
     frame.embrace(frameBeg);
     frame.embrace(frameEnd);
-
     return frame;
 }
 
