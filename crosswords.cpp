@@ -210,9 +210,23 @@ pos_t Word::get_start_position() const {
 
 pos_t Word::get_end_position() const {
     pos_t end = position;
-    if (orientation == orientation_t::H) end.first += str.size() - 1;
-    else end.second += str.size() - 1;
+    size_t increment =  str.size() - 1;
+    if (orientation == orientation_t::H) {
 
+        if (SIZE_MAX - end.first >= increment)
+        end.first += increment;
+        else {
+            end.first = SIZE_MAX;
+        }
+    }
+    else  {
+        if (SIZE_MAX - end.second >= increment) {
+            end.second += increment;
+        }
+        else {
+            end.second = SIZE_MAX;
+        }
+    }
     return end;
 }
 
