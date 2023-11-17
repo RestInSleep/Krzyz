@@ -302,8 +302,11 @@ Crossword::Crossword(Crossword&& crossword) :
         rect_area(std::move(crossword.rect_area)),
         fullArea(std::move(crossword.fullArea)) {
 
-    if (crossword.countH + crossword.countV == 0)
-        rect_area = DEFAULT_EMPTY_RECT_AREA;
+   crossword.countH = 0;
+    crossword.countV = 0;
+    crossword.rect_area = DEFAULT_EMPTY_RECT_AREA;
+    crossword.words = {};
+    crossword.fullArea = {};
 }
 
 
@@ -409,8 +412,12 @@ bool Crossword::insert_word(const Word& word) {
         correctLetter(toAdd);
 
         fullArea.insert({begPos, toAdd});
+        if (begPos == endPos) {
+            break;
+        }
         begPos = nextPos(begPos, orientation);
         idx++;
+
     }
     return true;
 }
